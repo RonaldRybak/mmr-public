@@ -1,5 +1,45 @@
 {
-  "jugadores": {},
+  "jugadores": {
+    "Gipey": {
+      "nombre": "Gipey",
+      "mmr": 0,
+      "online": false,
+      "estado": "idle",
+      "victorias": 0,
+      "derrotas": 0,
+      "partidas": 0,
+      "nivel": 1,
+      "exp_total": "0",
+      "exp_actual_nivel": "0",
+      "exp_necesaria_nivel": "50"
+    },
+    "Stalker": {
+      "nombre": "Stalker",
+      "mmr": 0,
+      "online": false,
+      "estado": "idle",
+      "victorias": 0,
+      "derrotas": 0,
+      "partidas": 0,
+      "nivel": 1,
+      "exp_total": "0",
+      "exp_actual_nivel": "0",
+      "exp_necesaria_nivel": "50"
+    },
+    "Vequedo": {
+      "nombre": "Vequedo",
+      "mmr": 0,
+      "online": false,
+      "estado": "idle",
+      "victorias": 0,
+      "derrotas": 0,
+      "partidas": 0,
+      "nivel": 1,
+      "exp_total": "0",
+      "exp_actual_nivel": "0",
+      "exp_necesaria_nivel": "50"
+    }
+  },
   "partidas_activas": [],
   "historial_partidas": [],
   "id_partida": 1,
