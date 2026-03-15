@@ -1,6 +1,8 @@
 {
-  "players": [],
-  "onlinePlayers": [],
-  "activeMatches": [],
-  "matchHistory": []
+  "jugadores": {},
+  "partidas_activas": [],
+  "historial_partidas": [],
+  "id_partida": 1,
+  "waitingPriority": null,
+  "replaceOut": null
 }
