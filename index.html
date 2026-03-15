@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Estadísticas del sistema</title>
+  <style>
+    :root{
+      --bg:#0b1020;
+      --panel:#141b34;
+      --line:rgba(255,255,255,.08);
+      --text:#eef2ff;
+      --muted:#a7b0d6;
+      --accent:#7c9cff;
+      --good:#4ade80;
+      --bad:#f87171;
+      --warn:#fbbf24;
+      --shadow:0 10px 30px rgba(0,0,0,.28);
+      --radius:18px;
+    }
+    *{box-sizing:border-box}
+    html,body{margin:0;padding:0;background:linear-gradient(180deg,#0b1020 0%,#0f1530 100%);color:var(--text);font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif}
+    body{min-height:100vh}
+    .wrap{width:min(1480px,calc(100% - 28px));margin:20px auto 36px}
+    .hero{display:grid;grid-template-columns:1.25fr .95fr;gap:16px;margin-bottom:18px}
+    .card{background:rgba(20,27,52,.9);backdrop-filter:blur(8px);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow)}
+    .hero-main{padding:22px;background:
+      radial-gradient(1200px 300px at 20% -10%, rgba(124,156,255,.18), transparent 40%),
+      radial-gradient(800px 280px at 80% 0%, rgba(74,222,128,.10), transparent 35%),
+      rgba(20,27,52,.92)}
+    h1{margin:0 0 8px;font-size:clamp(28px,3vw,42px);line-height:1.05;letter-spacing:-.02em}
+    .subtitle{color:var(--muted);font-size:15px;line-height:1.5;margin-bottom:12px;max-width:900px}
+    .hero-side{padding:18px;display:grid;grid-template-columns:repeat(2,1fr);gap:12px}
+    .stat{background:rgba(255,255,255,.04);border:1px solid var(--line);border-radius:16px;padding:14px}
+    .stat .k{color:var(--muted);font-size:12px;margin-bottom:8px;text-transform:uppercase;letter-spacing:.08em}
+    .stat .v{font-size:28px;font-weight:800;letter-spacing:-.02em}
+    .layout{display:grid;grid-template-columns:1fr 1fr 1.1fr;gap:18px;align-items:start}
+    .section{padding:18px}
+    .section h2{margin:0 0 12px;font-size:18px;letter-spacing:-.01em}
+    .small{font-size:12px;color:var(--muted)}
+    .strong{font-weight:800;color:var(--text)}
+    .muted{color:var(--muted)}
+    .pill{display:inline-flex;align-items:center;gap:6px;border-radius:999px;padding:6px 10px;font-size:12px;font-weight:700;border:1px solid var(--line);background:rgba(255,255,255,.04);color:var(--muted)}
+    .pill.good{color:#d1fae5;background:rgba(34,197,94,.14);border-color:rgba(34,197,94,.25)}
+    .pill.bad{color:#fee2e2;background:rgba(239,68,68,.14);border-color:rgba(239,68,68,.25)}
+    .pill.warn{color:#fef3c7;background:rgba(245,158,11,.14);border-color:rgba(245,158,11,.25)}
+    .list{display:grid;gap:12px;max-height:760px;overflow:auto;padding-right:4px}
+    .list::-webkit-scrollbar{width:10px}
+    .list::-webkit-scrollbar-thumb{background:rgba(255,255,255,.12);border-radius:999px}
+    .empty{color:var(--muted);border:1px dashed var(--line);border-radius:16px;padding:18px;text-align:center;background:rgba(255,255,255,.02)}
+    .player-row,.queue-row{
+      display:grid;gap:10px;align-items:center;border:1px solid var(--line);
+      background:rgba(255,255,255,.03);border-radius:14px;padding:12px
+    }
+    .player-row{grid-template-columns:1.3fr auto auto auto auto}
+    .queue-row{grid-template-columns:44px 1fr auto}
+    .match{border:1px solid var(--line);background:rgba(255,255,255,.03);border-radius:18px;overflow:hidden}
+    .match-head{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:14px 16px;background:rgba(255,255,255,.03);border-bottom:1px solid var(--line)}
+    .match-title{font-size:16px;font-weight:800}
+    .match-body{display:grid;grid-template-columns:1fr 1fr;gap:14px;padding:14px}
+    .team{background:rgba(255,255,255,.03);border:1px solid var(--line);border-radius:16px;padding:12px}
+    .team h3{margin:0 0 10px;font-size:15px}
+    .player-line{display:flex;justify-content:space-between;gap:10px;padding:8px 0;border-bottom:1px dashed rgba(255,255,255,.07);font-size:14px}
+    .player-line:last-child{border-bottom:0}
+    .history{border:1px solid var(--line);background:rgba(255,255,255,.03);border-radius:16px;padding:14px}
+    .history h3{margin:0 0 8px;font-size:15px}
+    .history-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:10px}
+    .footer-note{margin-top:18px;color:var(--muted);font-size:13px;text-align:center}
+    .notice{margin-top:10px}
+    @media (max-width:1250px){
+      .hero,.layout{grid-template-columns:1fr}
+      .hero-side{grid-template-columns:repeat(4,1fr)}
+    }
+    @media (max-width:800px){
+      .hero-side{grid-template-columns:repeat(2,1fr)}
+      .match-body,.history-grid{grid-template-columns:1fr}
+      .player-row{grid-template-columns:1fr auto}
+      .hide-mobile{display:none}
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <section class="hero">
+      <div class="card hero-main">
+        <h1>Panel público de estadísticas</h1>
+        <div class="subtitle">
+          Esta es una vista solo lectura para jugadores. Muestra estadísticas, jugadores, partidas activas e historial.
+          No permite modificar nada.
+        </div>
+        <div class="notice small">
+          Fuente de datos: <span class="strong">public_state.json</span> · Recarga la página para ver nuevos cambios.
+        </div>
+      </div>
+      <div class="card hero-side">
+        <div class="stat">
+          <div class="k">Jugadores totales</div>
+          <div class="v" id="statJugadores">0</div>
+        </div>
+        <div class="stat">
+          <div class="k">Online e idle</div>
+          <div class="v" id="statOnline">0</div>
+        </div>
+        <div class="stat">
+          <div class="k">Partidas activas</div>
+          <div class="v" id="statPartidas">0</div>
+        </div>
+        <div class="stat">
+          <div class="k">Historial</div>
+          <div class="v" id="statHistorial">0</div>
+        </div>
+      </div>
+    </section>
+
+    <section class="layout">
+      <div class="card section">
+        <h2>Ranking de jugadores</h2>
+        <div class="small" style="margin-bottom:12px;">Ordenado por MMR, luego nivel y victorias.</div>
+        <div id="playersList" class="list"></div>
+      </div>
+
+      <div class="card section">
+        <h2>Jugadores online</h2>
+        <div class="small" style="margin-bottom:12px;">Vista pública de quién está disponible.</div>
+        <div id="queueInfo" class="list"></div>
+        <div style="height:16px"></div>
+        <h2>Partidas activas</h2>
+        <div id="partidasList" class="list"></div>
+      </div>
+
+      <div class="card section">
+        <h2>Historial de partidas</h2>
+        <div class="small" style="margin-bottom:12px;">Resumen completo de enfrentamientos y cambios de cada jugador.</div>
+        <div id="historyList" class="list"></div>
+      </div>
+    </section>
+
+    <div class="footer-note">
+      Vista pública solo lectura.
+    </div>
+  </div>
+
+  <script>
+    function escapeHtml(str) {
+      return String(str)
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#039;");
+    }
+
+    function formatBigInt(value) {
+      const s = value.toString();
+      return s.replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+    }
+
+    async function loadPublicData() {
+      try {
+        const response = await fetch("./public_state.json", { cache: "no-store" });
+        if (!response.ok) throw new Error("No se pudo cargar public_state.json");
+        const data = await response.json();
+        render(data);
+      } catch (err) {
+        document.getElementById("playersList").innerHTML = '<div class="empty">No se pudo cargar el archivo public_state.json.</div>';
+        document.getElementById("queueInfo").innerHTML = '<div class="empty">Sube el archivo public_state.json junto con este HTML.</div>';
+        document.getElementById("partidasList").innerHTML = '<div class="empty">Sin datos.</div>';
+        document.getElementById("historyList").innerHTML = '<div class="empty">Sin datos.</div>';
+      }
+    }
+
+    function render(data) {
+      const jugadores = data.jugadores || {};
+      const partidas_activas = data.partidas_activas || [];
+      const historial_partidas = data.historial_partidas || [];
+      const waitingPriority = data.waitingPriority || null;
+      const replaceOut = data.replaceOut || null;
+
+      const players = Object.values(jugadores).sort((a, b) => {
+        if (b.mmr !== a.mmr) return b.mmr - a.mmr;
+        if (b.nivel !== a.nivel) return b.nivel - a.nivel;
+        if ((b.victorias || 0) !== (a.victorias || 0)) return (b.victorias || 0) - (a.victorias || 0);
+        return a.nombre.localeCompare(b.nombre);
+      });
+
+      const onlineIdle = players.filter(j => j.online && j.estado === "idle");
+
+      document.getElementById("statJugadores").textContent = players.length;
+      document.getElementById("statOnline").textContent = onlineIdle.length;
+      document.getElementById("statPartidas").textContent = partidas_activas.length;
+      document.getElementById("statHistorial").textContent = historial_partidas.length;
+
+      const playersBox = document.getElementById("playersList");
+      if (!players.length) {
+        playersBox.innerHTML = '<div class="empty">No hay jugadores.</div>';
+      } else {
+        playersBox.innerHTML = players.map(j => {
+          const expActual = BigInt(j.exp_actual_nivel || "0");
+          const expNecesaria = BigInt(j.exp_necesaria_nivel || "0");
+          const progreso = j.nivel >= 1000 ? "Nivel máximo" : `${formatBigInt(expActual)} / ${formatBigInt(expNecesaria)} EXP`;
+          return `
+            <div class="player-row">
+              <div>
+                <div class="strong">${escapeHtml(j.nombre)}</div>
+                <div class="small">Estado: ${escapeHtml(j.estado)} · EXP total: ${formatBigInt(BigInt(j.exp_total || "0"))}</div>
+              </div>
+              <div class="pill warn">MMR ${j.mmr}</div>
+              <div class="pill">Nivel ${j.nivel}</div>
+              <div class="small hide-mobile">${progreso}</div>
+              <div class="pill ${j.online ? 'good' : 'bad'}">${j.online ? 'Online' : 'Offline'}</div>
+            </div>
+          `;
+        }).join("");
+      }
+
+      const queueBox = document.getElementById("queueInfo");
+      if (!onlineIdle.length && !waitingPriority && !replaceOut) {
+        queueBox.innerHTML = '<div class="empty">No hay jugadores online e idle.</div>';
+      } else {
+        let html = "";
+        if (waitingPriority && jugadores[waitingPriority]) {
+          html += `
+            <div class="queue-row">
+              <div class="pill warn">PRIO</div>
+              <div>
+                <div class="strong">${escapeHtml(waitingPriority)}</div>
+                <div class="small">Prioridad en la próxima partida</div>
+              </div>
+              <div class="pill warn">MMR ${jugadores[waitingPriority].mmr}</div>
+            </div>
+          `;
+        }
+        if (replaceOut && jugadores[replaceOut]) {
+          html += `
+            <div class="queue-row">
+              <div class="pill bad">OUT</div>
+              <div>
+                <div class="strong">${escapeHtml(replaceOut)}</div>
+                <div class="small">Jugador que saldrá si aplica la sustitución</div>
+              </div>
+              <div class="pill bad">MMR ${jugadores[replaceOut].mmr}</div>
+            </div>
+          `;
+        }
+        html += onlineIdle.map((j, i) => `
+          <div class="queue-row">
+            <div class="pill">#${i + 1}</div>
+            <div>
+              <div class="strong">${escapeHtml(j.nombre)}</div>
+              <div class="small">Nivel ${j.nivel} · ${j.partidas || 0} partidas</div>
+            </div>
+            <div class="pill warn">MMR ${j.mmr}</div>
+          </div>
+        `).join("");
+        queueBox.innerHTML = html;
+      }
+
+      const partidasBox = document.getElementById("partidasList");
+      if (!partidas_activas.length) {
+        partidasBox.innerHTML = '<div class="empty">No hay partidas activas.</div>';
+      } else {
+        partidasBox.innerHTML = partidas_activas.map(p => {
+          const mmrA = (p.equipo_a || []).reduce((acc, n) => acc + ((jugadores[n] || {}).mmr || 0), 0);
+          const mmrB = (p.equipo_b || []).reduce((acc, n) => acc + ((jugadores[n] || {}).mmr || 0), 0);
+          return `
+            <div class="match">
+              <div class="match-head">
+                <div>
+                  <div class="match-title">Partida #${p.id} · ${p.teamSize} vs ${p.teamSize}</div>
+                  <div class="small">Vista pública</div>
+                </div>
+                <div class="pill">MMR total ${mmrA} vs ${mmrB}</div>
+              </div>
+              <div class="match-body">
+                <div class="team">
+                  <h3>Equipo A</h3>
+                  ${(p.equipo_a || []).map(nombre => `
+                    <div class="player-line">
+                      <span>${escapeHtml(nombre)}</span>
+                      <span class="muted">MMR ${(jugadores[nombre] || {}).mmr ?? "-"} · Nivel ${(jugadores[nombre] || {}).nivel ?? "-"}</span>
+                    </div>
+                  `).join("")}
+                </div>
+                <div class="team">
+                  <h3>Equipo B</h3>
+                  ${(p.equipo_b || []).map(nombre => `
+                    <div class="player-line">
+                      <span>${escapeHtml(nombre)}</span>
+                      <span class="muted">MMR ${(jugadores[nombre] || {}).mmr ?? "-"} · Nivel ${(jugadores[nombre] || {}).nivel ?? "-"}</span>
+                    </div>
+                  `).join("")}
+                </div>
+              </div>
+              <div style="padding:0 14px 14px;">
+                <div class="small">
+                  ${p.waiting && p.waiting.length ? `Esperando fuera: ${p.waiting.map(escapeHtml).join(", ")}` : "No quedó nadie esperando fuera."}
+                </div>
+              </div>
+            </div>
+          `;
+        }).join("");
+      }
+
+      const historyBox = document.getElementById("historyList");
+      if (!historial_partidas.length) {
+        historyBox.innerHTML = '<div class="empty">Todavía no hay historial de partidas.</div>';
+      } else {
+        historyBox.innerHTML = historial_partidas.map(h => `
+          <div class="history">
+            <h3>Partida #${h.id} · ${h.teamSize} vs ${h.teamSize}</h3>
+            <div class="small">${escapeHtml(h.fecha || "")} · Ganó equipo ${escapeHtml(h.winner || "")}</div>
+            <div class="history-grid">
+              <div class="team">
+                <h3>Equipo A</h3>
+                ${(h.equipo_a || []).map(nombre => `
+                  <div class="player-line">
+                    <span>${escapeHtml(nombre)}</span>
+                    <span class="muted">${h.winner === "A" ? "Ganó" : "Perdió"}</span>
+                  </div>
+                `).join("")}
+              </div>
+              <div class="team">
+                <h3>Equipo B</h3>
+                ${(h.equipo_b || []).map(nombre => `
+                  <div class="player-line">
+                    <span>${escapeHtml(nombre)}</span>
+                    <span class="muted">${h.winner === "B" ? "Ganó" : "Perdió"}</span>
+                  </div>
+                `).join("")}
+              </div>
+            </div>
+            <div style="height:12px"></div>
+            ${h.waiting && h.waiting.length ? `<div class="small">Esperando fuera: ${h.waiting.map(escapeHtml).join(", ")}</div>` : ""}
+            ${h.prioridad_usada ? `<div class="small">Entró con prioridad: ${escapeHtml(h.prioridad_usada)}</div>` : ""}
+            ${h.reemplazado_fuera ? `<div class="small">Salió por sustitución: ${escapeHtml(h.reemplazado_fuera)}</div>` : ""}
+            <div style="height:12px"></div>
+            <div class="team">
+              <h3>Cambios individuales</h3>
+              ${(h.detalles || []).map(d => `
+                <div class="player-line">
+                  <span>
+                    <span class="strong">${escapeHtml(d.nombre)}</span>
+                    <span class="small"> · ${escapeHtml(d.resultado)}</span>
+                  </span>
+                  <span class="muted">
+                    MMR ${d.mmrAntes} → ${d.mmrDespues}
+                    · EXP ${formatBigInt(BigInt(d.expAntes || "0"))} → ${formatBigInt(BigInt(d.expDespues || "0"))}
+                    · Nivel ${d.nivelAntes} → ${d.nivelDespues}
+                  </span>
+                </div>
+              `).join("")}
+            </div>
+          </div>
+        `).join("");
+      }
+    }
+
+    loadPublicData();
+  </script>
+</body>
+</html>
